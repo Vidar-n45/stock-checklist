@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>เช็คสต็อคอุปกรณ์</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  /* ===== CONFIG: ใส่ค่าของคุณที่นี่ ===== */
+  /* LIFF_ID และ SHEET_URL ตั้งค่าใน script ด้านล่าง */
+
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;background:#F2F2F7;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;}
+
+  /* NAV */
+  .nav{background:rgba(249,249,249,0.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:12px 16px 10px;border-bottom:0.5px solid #C6C6C8;position:sticky;top:0;z-index:10;}
+  .nav-title{font-size:17px;font-weight:600;color:#000;text-align:center;letter-spacing:-0.3px;}
+  .nav-sub{font-size:12px;color:#8E8E93;text-align:center;margin-top:1px;}
+
+  /* TABS */
+  .tab-bar{background:rgba(249,249,249,0.94);backdrop-filter:blur(10px);border-top:0.5px solid #C6C6C8;display:flex;position:fixed;bottom:0;left:0;right:0;z-index:10;padding-bottom:env(safe-area-inset-bottom);}
+  .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;gap:3px;cursor:pointer;color:#8E8E93;font-size:10px;font-weight:500;border:none;background:none;}
+  .tab-item.active{color:#007AFF;}
+  .tab-item svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* PAGES */
+  .page{display:none;padding:0 0 80px;}
+  .page.active{display:block;}
+
+  /* SECTION HEADER */
+  .sec-hdr{padding:20px 16px 6px;font-size:13px;font-weight:400;color:#6D6D72;text-transform:uppercase;letter-spacing:0.03em;}
+
+  /* LIST CARD */
+  .list-card{margin:0 16px 20px;background:#fff;border-radius:12px;overflow:hidden;}
+  .list-row{display:flex;align-items:center;padding:11px 14px;border-bottom:0.5px solid #E5E5EA;}
+  .list-row:last-child{border-bottom:none;}
+  .row-name{flex:1;font-size:15px;color:#000;line-height:1.3;}
+  .row-min{font-size:12px;color:#8E8E93;margin-right:10px;white-space:nowrap;}
+  .row-input{width:52px;text-align:center;font-size:15px;font-weight:500;padding:5px 4px;border-radius:8px;border:1px solid #D1D1D6;background:#F9F9F9;color:#000;font-family:inherit;-webkit-appearance:none;}
+  .row-input:focus{outline:none;border-color:#007AFF;background:#fff;}
+  .row-dot{width:8px;height:8px;border-radius:50%;margin-left:10px;background:#D1D1D6;flex-shrink:0;transition:background 0.2s;}
+  .row-dot.ok{background:#34C759;}
+  .row-dot.warn{background:#FF9500;}
+
+  /* PROFILE ROW */
+  .profile-row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;margin:12px 16px 0;border-radius:12px;}
+  .profile-avatar{width:40px;height:40px;border-radius:50%;background:#D1D1D6;object-fit:cover;flex-shrink:0;}
+  .profile-avatar-placeholder{width:40px;height:40px;border-radius:50%;background:#007AFF20;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;color:#007AFF;font-weight:600;}
+  .profile-info{flex:1;}
+  .profile-name{font-size:15px;font-weight:500;color:#000;}
+  .profile-date{font-size:13px;color:#8E8E93;margin-top:1px;}
+
+  /* BUTTON */
+  .btn-primary{display:block;width:calc(100% - 32px);margin:0 16px 12px;background:#007AFF;color:#fff;border:none;border-radius:12px;padding:14px;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:-0.2px;}
+  .btn-primary:active{opacity:0.8;}
+  .btn-primary:disabled{background:#D1D1D6;}
+
+  /* SUMMARY */
+  .summary-card{margin:0 16px 20px;background:#fff;border-radius:12px;overflow:hidden;display:none;}
+  .summary-card.show{display:block;}
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr;}
+  .summary-stat{padding:14px 16px;border-bottom:0.5px solid #E5E5EA;}
+  .summary-stat:nth-child(odd){border-right:0.5px solid #E5E5EA;}
+  .stat-num{font-size:26px;font-weight:600;letter-spacing:-0.5px;}
+  .stat-lbl{font-size:12px;color:#8E8E93;margin-top:2px;}
+  .warn-section{padding:12px 16px;background:#FFF9F0;}
+  .warn-title{font-size:12px;color:#FF9500;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.03em;}
+  .warn-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #F2F2F7;font-size:14px;}
+  .warn-item:last-child{border-bottom:none;}
+  .warn-need{font-size:13px;color:#FF9500;font-weight:500;}
+  .all-ok{padding:14px 16px;text-align:center;font-size:15px;color:#34C759;font-weight:500;}
+
+  /* MANAGE */
+  .add-card{margin:12px 16px 0;background:#fff;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
+  .field-group{display:flex;flex-direction:column;gap:4px;}
+  .field-label{font-size:12px;color:#8E8E93;font-weight:500;}
+  .field-input{border:none;border-bottom:1px solid #E5E5EA;padding:6px 0;font-size:15px;background:transparent;color:#000;font-family:inherit;outline:none;width:100%;}
+  .field-input:focus{border-color:#007AFF;}
+  .field-row{display:flex;gap:10px;align-items:flex-end;}
+  .field-row .field-group{flex:1;}
+  .btn-add{background:#007AFF;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;height:36px;}
+  .btn-add:active{opacity:0.8;}
+
+  .m-row{display:flex;align-items:center;padding:11px 14px;border-bottom:0.5px solid #E5E5EA;}
+  .m-row:last-child{border-bottom:none;}
+  .m-code{font-size:12px;color:#8E8E93;width:28px;flex-shrink:0;}
+  .m-name{flex:1;font-size:15px;color:#000;}
+  .m-min{font-size:13px;color:#8E8E93;margin-right:12px;}
+  .btn-del{background:none;border:none;color:#FF3B30;font-size:22px;cursor:pointer;padding:0 2px;line-height:1;}
+  .btn-del:active{opacity:0.6;}
+
+  /* HISTORY */
+  .h-card{margin:0 16px 8px;background:#fff;border-radius:12px;overflow:hidden;}
+  .h-head{padding:11px 14px;border-bottom:0.5px solid #E5E5EA;display:flex;justify-content:space-between;align-items:center;}
+  .h-date{font-size:15px;font-weight:500;color:#000;}
+  .h-checker{font-size:13px;color:#8E8E93;}
+  .h-stats{display:flex;padding:12px 14px;gap:20px;}
+  .h-stat{display:flex;flex-direction:column;gap:2px;}
+  .h-num{font-size:20px;font-weight:600;letter-spacing:-0.3px;}
+  .h-lbl{font-size:11px;color:#8E8E93;}
+  .h-detail{padding:8px 14px;background:#F9F9F9;font-size:13px;color:#8E8E93;border-top:0.5px solid #E5E5EA;}
+  .empty-state{text-align:center;padding:48px 24px;color:#8E8E93;}
+  .empty-icon{font-size:40px;margin-bottom:12px;}
+  .empty-text{font-size:15px;}
+
+  /* LOADING */
+  .loading{text-align:center;padding:60px 24px;color:#8E8E93;font-size:15px;}
+</style>
+</head>
+<body>
+
+<div id="app" style="display:none;">
+
+  <!-- PAGE: CHECK -->
+  <div class="page active" id="page-check">
+    <div class="nav">
+      <div class="nav-title">เช็คสต็อค</div>
+      <div class="nav-sub" id="today-date"></div>
+    </div>
+    <div id="profile-area"></div>
+    <div class="sec-hdr">รายการ</div>
+    <div class="list-card" id="check-list"></div>
+    <div class="summary-card" id="summary-card">
+      <div class="summary-grid">
+        <div class="summary-stat"><div class="stat-num" id="s-ok" style="color:#34C759">0</div><div class="stat-lbl">ครบแล้ว</div></div>
+        <div class="summary-stat"><div class="stat-num" id="s-warn" style="color:#FF9500">0</div><div class="stat-lbl">ต้องเพิ่ม</div></div>
+        <div class="summary-stat"><div class="stat-num" id="s-total">0</div><div class="stat-lbl">ทั้งหมด</div></div>
+        <div class="summary-stat"><div class="stat-num" id="s-empty" style="color:#8E8E93">0</div><div class="stat-lbl">ยังไม่กรอก</div></div>
+      </div>
+      <div id="warn-body"></div>
+    </div>
+    <button class="btn-primary" id="btn-summarize" onclick="summarize()">สรุปผล</button>
+    <button class="btn-primary" id="btn-save" style="display:none;background:#34C759;" onclick="saveToSheet()">บันทึกผล</button>
+  </div>
+
+  <!-- PAGE: MANAGE -->
+  <div class="page" id="page-manage">
+    <div class="nav"><div class="nav-title">จัดการรายการ</div></div>
+    <div class="add-card">
+      <div class="field-group">
+        <div class="field-label">ชื่ออุปกรณ์</div>
+        <input class="field-input" id="new-name" placeholder="เช่น Set Jugular Vein" type="text">
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <div class="field-label">จำนวนขั้นต่ำ</div>
+          <input class="field-input" id="new-min" placeholder="เช่น 5" type="number" min="1" inputmode="numeric" style="width:120px;">
+        </div>
+        <button class="btn-add" onclick="addItem()">+ เพิ่ม</button>
+      </div>
+    </div>
+    <div class="sec-hdr" id="manage-count"></div>
+    <div class="list-card" id="manage-list"></div>
+  </div>
+
+  <!-- PAGE: HISTORY -->
+  <div class="page" id="page-history">
+    <div class="nav"><div class="nav-title">ประวัติย้อนหลัง</div></div>
+    <div class="sec-hdr">รายการล่าสุด</div>
+    <div id="history-list"><div class="loading">กำลังโหลด...</div></div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab-item active" id="tab-check" onclick="switchPage('check')">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      เช็คของ
+    </button>
+    <button class="tab-item" id="tab-manage" onclick="switchPage('manage')">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      จัดการรายการ
+    </button>
+    <button class="tab-item" id="tab-history" onclick="switchPage('history')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      ย้อนหลัง
+    </button>
+  </div>
+</div>
+
+<div id="loading-screen" class="loading" style="padding-top:80px;">
+  กำลังโหลด...
+</div>
+
+<script>
+// ===== ตั้งค่าที่นี่ =====
+const LIFF_ID = "YOUR_LIFF_ID"; // ใส่ LIFF ID ของคุณ
+const SHEET_URL = "YOUR_APPS_SCRIPT_URL"; // ใส่ URL จาก Google Apps Script
+// =======================
+
+let profile = null;
+let items = JSON.parse(localStorage.getItem('stock-items')) || [
+  {code:"001",name:"Set Jugular Vein",min:1},
+  {code:"002",name:"Set ICD",min:2},
+  {code:"003",name:"Set Irrigate",min:3},
+  {code:"004",name:"Set Suture",min:2},
+  {code:"005",name:"ชุดสอนนิสิตสาขะ",min:3},
+  {code:"006",name:"ก้อสบาว",min:50},
+  {code:"007",name:"Syringe Feed",min:5},
+  {code:"008",name:"กรรไกรตัดไหม",min:5},
+  {code:"009",name:"กรรไกรตัดเนื้อ",min:5},
+  {code:"010",name:"สาย Suction",min:10},
+  {code:"011",name:"สาย ICD 1 จุก",min:2},
+  {code:"012",name:"Ambu",min:3},
+  {code:"013",name:"แหนบไกด์ Y",min:3},
+  {code:"014",name:"ผ้าสี่เหลี่ยม",min:3},
+  {code:"015",name:"ผ้าสี่เหลี่ยมเจาะกลาง",min:3},
+  {code:"016",name:"บวด ICD",min:3},
+  {code:"017",name:"ก้อส Drain",min:20},
+  {code:"018",name:"วาสลิน Gauze",min:10},
+  {code:"019",name:"เข็มกลัด",min:20},
+];
+
+function saveItems(){ localStorage.setItem('stock-items', JSON.stringify(items)); }
+
+async function init() {
+  const today = new Date();
+  document.getElementById('today-date').textContent = today.toLocaleDateString('th-TH', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (liff.isLoggedIn()) {
+      profile = await liff.getProfile();
+    }
+  } catch(e) {
+    console.log('LIFF not available, running in browser mode');
+  }
+
+  renderProfile();
+  renderCheck();
+  renderManage();
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+function renderProfile() {
+  const area = document.getElementById('profile-area');
+  const dateStr = new Date().toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'numeric'});
+  if (profile) {
+    area.innerHTML = `<div class="profile-row">
+      <img class="profile-avatar" src="${profile.pictureUrl}" alt="">
+      <div class="profile-info">
+        <div class="profile-name">${profile.displayName}</div>
+        <div class="profile-date">${dateStr}</div>
+      </div>
+    </div>`;
+  } else {
+    area.innerHTML = `<div class="profile-row">
+      <div class="profile-avatar-placeholder">?</div>
+      <div class="profile-info">
+        <div class="profile-name" style="color:#8E8E93">เปิดผ่าน LINE เพื่อดึงชื่อ</div>
+        <div class="profile-date">${dateStr}</div>
+      </div>
+    </div>`;
+  }
+}
+
+function renderCheck() {
+  const list = document.getElementById('check-list');
+  list.innerHTML = '';
+  items.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'list-row';
+    row.innerHTML = `<span class="row-name">${item.name}</span><span class="row-min">min ${item.min}</span><input class="row-input" type="number" min="0" id="qty-${i}" placeholder="—" oninput="updateDot(${i})" inputmode="numeric"><span class="row-dot" id="dot-${i}"></span>`;
+    list.appendChild(row);
+  });
+  document.getElementById('summary-card').classList.remove('show');
+  document.getElementById('btn-save').style.display = 'none';
+  document.getElementById('btn-summarize').style.display = 'block';
+}
+
+function updateDot(i) {
+  const val = document.getElementById(`qty-${i}`).value;
+  const dot = document.getElementById(`dot-${i}`);
+  if (!val) { dot.className = 'row-dot'; return; }
+  dot.className = parseInt(val) >= items[i].min ? 'row-dot ok' : 'row-dot warn';
+}
+
+function summarize() {
+  let ok=0, warn=0, empty=0, warnItems=[];
+  items.forEach((item,i) => {
+    const val = document.getElementById(`qty-${i}`)?.value;
+    if (!val) { empty++; return; }
+    const qty = parseInt(val);
+    if (qty >= item.min) ok++;
+    else { warn++; warnItems.push({name:item.name, have:qty, need:item.min-qty}); }
+  });
+  document.getElementById('s-ok').textContent = ok;
+  document.getElementById('s-warn').textContent = warn;
+  document.getElementById('s-total').textContent = items.length;
+  document.getElementById('s-empty').textContent = empty;
+
+  const warnBody = document.getElementById('warn-body');
+  if (warnItems.length > 0) {
+    warnBody.innerHTML = `<div class="warn-section"><div class="warn-title">ต้องเพิ่ม</div>${warnItems.map(w=>`<div class="warn-item"><span>${w.name}</span><span class="warn-need">ขาด ${w.need}</span></div>`).join('')}</div>`;
+  } else if (empty === 0) {
+    warnBody.innerHTML = `<div class="all-ok">✓ สต็อคครบทุกรายการ</div>`;
+  } else {
+    warnBody.innerHTML = '';
+  }
+
+  document.getElementById('summary-card').classList.add('show');
+  document.getElementById('btn-summarize').style.display = 'none';
+  document.getElementById('btn-save').style.display = 'block';
+  document.getElementById('summary-card').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+async function saveToSheet() {
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.textContent = 'กำลังบันทึก...';
+
+  const warnItems = [];
+  items.forEach((item,i) => {
+    const val = document.getElementById(`qty-${i}`)?.value;
+    if (val && parseInt(val) < item.min) warnItems.push(`${item.name} (ขาด ${item.min - parseInt(val)})`);
+  });
+
+  const data = {
+    date: new Date().toLocaleDateString('th-TH'),
+    checker: profile ? profile.displayName : 'ไม่ระบุ',
+    ok: parseInt(document.getElementById('s-ok').textContent),
+    warn: parseInt(document.getElementById('s-warn').textContent),
+    warnItems: warnItems.join(', ') || '-'
+  };
+
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    btn.textContent = 'บันทึกแล้ว ✓';
+    btn.style.background = '#8E8E93';
+    loadHistory();
+  } catch(e) {
+    btn.textContent = 'บันทึกไม่สำเร็จ ลองอีกครั้ง';
+    btn.disabled = false;
+  }
+}
+
+function renderManage() {
+  document.getElementById('manage-count').textContent = `${items.length} รายการ`;
+  const list = document.getElementById('manage-list');
+  list.innerHTML = '';
+  items.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'm-row';
+    row.innerHTML = `<span class="m-code">${item.code}</span><span class="m-name">${item.name}</span><span class="m-min">min ${item.min}</span><button class="btn-del" onclick="delItem(${i})" aria-label="ลบ">−</button>`;
+    list.appendChild(row);
+  });
+}
+
+function addItem() {
+  const name = document.getElementById('new-name').value.trim();
+  const min = parseInt(document.getElementById('new-min').value);
+  if (!name || !min || min < 1) return;
+  items.push({code: String(items.length+1).padStart(3,'0'), name, min});
+  saveItems();
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-min').value = '';
+  renderManage();
+  renderCheck();
+}
+
+function delItem(i) {
+  if (!confirm(`ลบ "${items[i].name}" ออกจากรายการ?`)) return;
+  items.splice(i, 1);
+  items.forEach((item,idx) => item.code = String(idx+1).padStart(3,'0'));
+  saveItems();
+  renderManage();
+  renderCheck();
+}
+
+async function loadHistory() {
+  const container = document.getElementById('history-list');
+  if (!SHEET_URL || SHEET_URL === 'YOUR_APPS_SCRIPT_URL') {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">ยังไม่ได้ตั้งค่า Google Sheets<br>ใส่ SHEET_URL ในไฟล์ก่อนนะคะ</div></div>`;
+    return;
+  }
+  try {
+    const res = await fetch(SHEET_URL + '?action=get');
+    const rows = await res.json();
+    if (!rows.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">ยังไม่มีประวัติการเช็ค</div></div>`;
+      return;
+    }
+    container.innerHTML = rows.reverse().map(r => `
+      <div class="h-card">
+        <div class="h-head"><span class="h-date">${r.date}</span><span class="h-checker">${r.checker}</span></div>
+        <div class="h-stats">
+          <div class="h-stat"><div class="h-num" style="color:#34C759">${r.ok}</div><div class="h-lbl">ครบ</div></div>
+          <div class="h-stat"><div class="h-num" style="color:#FF9500">${r.warn}</div><div class="h-lbl">ขาด</div></div>
+          <div class="h-stat"><div class="h-num">${parseInt(r.ok)+parseInt(r.warn)}</div><div class="h-lbl">ทั้งหมด</div></div>
+        </div>
+        <div class="h-detail" style="color:${r.warn>0?'#8E8E93':'#34C759'}">${r.warnItems === '-' ? 'ครบทุกรายการ' : 'ขาด: ' + r.warnItems}</div>
+      </div>`).join('');
+  } catch(e) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-text">โหลดไม่สำเร็จ</div></div>`;
+  }
+}
+
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+  if (name === 'history') loadHistory();
+}
+
+init();
+</script>
+</body>
+</html>
