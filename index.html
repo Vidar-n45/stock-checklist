@@ -2,114 +2,220 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>เช็คสต็อคอุปกรณ์</title>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --primary: #0033ff;
+    --primary-light: #E3F2FF;
+    --success: #34C759;
+    --success-light: #E8F8ED;
+    --warning: #FF9500;
+    --warning-light: #FFF4E5;
+    --danger: #FF3B30;
+    --danger-light: #FFE5E5;
+    --gray-100: #F2F2F7;
+    --gray-200: #E5E5EA;
+    --gray-300: #D1D1D6;
+    --gray-400: #C7C7CC;
+    --gray-500: #AEAEB2;
+    --gray-600: #8E8E93;
+    --gray-700: #636366;
+    --gray-800: #3A3A3C;
+    --gray-900: #1C1C1E;
+    --card-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --card-shadow-hover: 0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.06);
+  }
+
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-  html,body{height:100%;background:#F2F2F7;font-family:'Noto Sans Thai',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;}
+  html,body{height:100%;background:linear-gradient(180deg, #F8F9FA 0%, #F2F2F7 100%);font-family:'Noto Sans Thai',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;}
 
-  .nav{background:rgba(249,249,249,0.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:12px 16px 10px;border-bottom:0.5px solid #C6C6C8;position:sticky;top:0;z-index:10;}
-  .nav-title{font-size:17px;font-weight:600;color:#000;text-align:center;letter-spacing:-0.3px;}
-  .nav-sub{font-size:12px;color:#8E8E93;text-align:center;margin-top:1px;}
+  /* ANIMATIONS */
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+  @keyframes slideUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+  @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+  @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
+  @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
 
-  .tab-bar{background:rgba(249,249,249,0.94);backdrop-filter:blur(10px);border-top:0.5px solid #C6C6C8;display:flex;position:fixed;bottom:0;left:0;right:0;z-index:10;padding-bottom:env(safe-area-inset-bottom);}
-  .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;gap:3px;cursor:pointer;color:#8E8E93;font-size:10px;font-weight:500;border:none;background:none;}
-  .tab-item.active{color:#007AFF;}
-  .tab-item svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .nav{background:linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(249,249,249,0.95) 100%);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:16px 20px 12px;border-bottom:1px solid rgba(0,0,0,0.06);position:sticky;top:0;z-index:100;}
+  .nav-title{font-size:20px;font-weight:700;color:var(--gray-900);text-align:center;letter-spacing:-0.5px;}
+  .nav-sub{font-size:13px;color:var(--gray-600);text-align:center;margin-top:2px;font-weight:400;}
 
-  .page{display:none;padding:0 0 80px;}
+  .tab-bar{background:linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(249,249,249,0.95) 100%);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,0.06);display:flex;position:fixed;bottom:0;left:0;right:0;z-index:100;padding:6px 0 calc(6px + env(safe-area-inset-bottom));}
+  .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 0;gap:4px;cursor:pointer;color:var(--gray-500);font-size:10px;font-weight:500;border:none;background:none;transition:all 0.2s ease;}
+  .tab-item.active{color:var(--primary);}
+  .tab-item.active svg{transform:scale(1.1);}
+  .tab-item svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform 0.2s ease;}
+
+  .page{display:none;padding:0 0 90px;animation:fadeIn 0.3s ease;}
   .page.active{display:block;}
 
-  .sec-hdr{padding:20px 16px 6px;font-size:13px;font-weight:400;color:#6D6D72;text-transform:uppercase;letter-spacing:0.03em;}
+  .sec-hdr{padding:24px 20px 8px;font-size:13px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.5px;}
 
-  .list-card{margin:0 16px 20px;background:#fff;border-radius:12px;overflow:hidden;}
+  .list-card{margin:0 16px 20px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:var(--card-shadow);transition:box-shadow 0.2s ease;}
 
-  /* CHECK ROW — รูป + ชื่อ + stepper */
-  .list-row{display:flex;align-items:center;padding:10px 14px;border-bottom:0.5px solid #E5E5EA;gap:10px;}
+  /* CHECK ROW */
+  .list-row{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--gray-100);gap:12px;transition:background 0.15s ease;animation:fadeIn 0.3s ease backwards;}
+  .list-row:nth-child(1){animation-delay:0.02s;}
+  .list-row:nth-child(2){animation-delay:0.04s;}
+  .list-row:nth-child(3){animation-delay:0.06s;}
+  .list-row:nth-child(4){animation-delay:0.08s;}
+  .list-row:nth-child(5){animation-delay:0.1s;}
   .list-row:last-child{border-bottom:none;}
-  .row-img{width:40px;height:40px;border-radius:8px;object-fit:cover;background:#F2F2F7;flex-shrink:0;}
-  .row-img-placeholder{width:40px;height:40px;border-radius:8px;background:#F2F2F7;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:#C7C7CC;}
+  .list-row:active{background:var(--gray-100);}
+  .row-img{width:48px;height:48px;border-radius:12px;object-fit:cover;background:linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,0.06);}
+  .row-img-placeholder{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gray-400);}
+  .row-img-placeholder svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.5;fill:none;}
   .row-info{flex:1;min-width:0;}
-  .row-name{font-size:14px;color:#000;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .row-min{font-size:11px;color:#8E8E93;margin-top:1px;}
+  .row-name{font-size:15px;font-weight:500;color:var(--gray-900);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row-min{font-size:12px;color:var(--gray-500);margin-top:2px;font-weight:400;}
 
   /* STEPPER */
-  .stepper{display:flex;align-items:center;gap:2px;flex-shrink:0;}
-  .step-btn{width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:400;line-height:1;}
-  .step-btn:active{opacity:0.7;}
-  .step-minus{background:#FFE5E5;color:#FF3B30;}
-  .step-plus{background:#E5F4ED;color:#34C759;}
-  .step-input{width:38px;text-align:center;font-size:15px;font-weight:500;border:none;border-bottom:1.5px solid #D1D1D6;background:transparent;color:#000;font-family:inherit;padding:3px 0;outline:none;-webkit-appearance:none;}
-  .step-input:focus{border-color:#007AFF;}
-  .step-input.zero{color:#C7C7CC;}
-  .step-input.ok{color:#34C759;}
-  .step-input.warn{color:#FF9500;}
-  .row-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#D1D1D6;margin-left:4px;transition:background 0.2s;}
-  .row-dot.ok{background:#34C759;}
-  .row-dot.warn{background:#FF9500;}
+  .stepper{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+  .step-btn{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:500;line-height:1;transition:all 0.15s ease;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+  .step-btn:active{transform:scale(0.92);}
+  .step-minus{background:linear-gradient(135deg, #FF6B6B 0%, var(--danger) 100%);color:#fff;}
+  .step-plus{background:linear-gradient(135deg, #5DD879 0%, var(--success) 100%);color:#fff;}
+  .step-input{width:44px;text-align:center;font-size:17px;font-weight:600;border:none;border-radius:8px;background:var(--gray-100);color:var(--gray-900);font-family:inherit;padding:6px 4px;outline:none;-webkit-appearance:none;transition:all 0.2s ease;}
+  .step-input:focus{background:var(--primary-light);box-shadow:0 0 0 2px var(--primary);}
+  .step-input.zero{color:var(--gray-400);}
+  .step-input.ok{color:var(--success);background:var(--success-light);}
+  .step-input.warn{color:var(--warning);background:var(--warning-light);}
+  .row-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;background:var(--gray-300);margin-left:4px;transition:all 0.3s ease;}
+  .row-dot.ok{background:var(--success);box-shadow:0 0 8px rgba(52,199,89,0.4);}
+  .row-dot.warn{background:var(--warning);box-shadow:0 0 8px rgba(255,149,0,0.4);animation:pulse 1.5s infinite;}
 
   /* PROFILE */
-  .profile-row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;margin:12px 16px 0;border-radius:12px;}
-  .profile-avatar{width:40px;height:40px;border-radius:50%;background:#D1D1D6;object-fit:cover;flex-shrink:0;}
-  .profile-avatar-placeholder{width:40px;height:40px;border-radius:50%;background:#007AFF20;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;color:#007AFF;font-weight:600;}
+  .profile-row{display:flex;align-items:center;gap:14px;padding:16px 18px;background:linear-gradient(135deg, #fff 0%, #FAFBFC 100%);margin:16px 16px 0;border-radius:16px;box-shadow:var(--card-shadow);animation:slideUp 0.4s ease;}
+  .profile-avatar{width:48px;height:48px;border-radius:50%;background:var(--gray-300);object-fit:cover;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+  .profile-avatar-placeholder{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg, var(--primary-light) 0%, #C8E4FF 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--primary);}
+  .profile-avatar-placeholder svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.5;fill:none;}
   .profile-info{flex:1;}
-  .profile-name{font-size:15px;font-weight:500;color:#000;}
-  .profile-date{font-size:13px;color:#8E8E93;margin-top:1px;}
+  .profile-name{font-size:17px;font-weight:600;color:var(--gray-900);}
+  .profile-date{font-size:13px;color:var(--gray-500);margin-top:2px;}
 
-  .btn-primary{display:block;width:calc(100% - 32px);margin:0 16px 12px;background:#007AFF;color:#fff;border:none;border-radius:12px;padding:14px;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;}
-  .btn-primary:active{opacity:0.8;}
-  .btn-primary:disabled{background:#D1D1D6;}
+  .btn-primary{display:block;width:calc(100% - 32px);margin:0 16px 12px;background:linear-gradient(135deg, #3B8DF8 0%, var(--primary) 100%);color:#fff;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(0,122,255,0.3);transition:all 0.2s ease;}
+  .btn-primary:active{transform:scale(0.98);box-shadow:0 2px 8px rgba(0,122,255,0.2);}
+  .btn-primary:disabled{background:linear-gradient(135deg, var(--gray-300) 0%, var(--gray-400) 100%);box-shadow:none;}
+  .btn-primary.success{background:linear-gradient(135deg, #5DD879 0%, var(--success) 100%);box-shadow:0 4px 12px rgba(52,199,89,0.3);}
 
-  .summary-card{margin:0 16px 20px;background:#fff;border-radius:12px;overflow:hidden;display:none;}
+  .summary-card{margin:0 16px 20px;background:#fff;border-radius:16px;overflow:hidden;display:none;box-shadow:var(--card-shadow);animation:slideUp 0.4s ease;}
   .summary-card.show{display:block;}
   .summary-grid{display:grid;grid-template-columns:1fr 1fr;}
-  .summary-stat{padding:14px 16px;border-bottom:0.5px solid #E5E5EA;}
-  .summary-stat:nth-child(odd){border-right:0.5px solid #E5E5EA;}
-  .stat-num{font-size:26px;font-weight:600;letter-spacing:-0.5px;}
-  .stat-lbl{font-size:12px;color:#8E8E93;margin-top:2px;}
-  .warn-section{padding:12px 16px;background:#FFF9F0;}
-  .warn-title{font-size:12px;color:#FF9500;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.03em;}
-  .warn-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #F2F2F7;font-size:14px;}
+  .summary-stat{padding:18px 16px;border-bottom:1px solid var(--gray-100);text-align:center;}
+  .summary-stat:nth-child(odd){border-right:1px solid var(--gray-100);}
+  .stat-num{font-size:32px;font-weight:700;letter-spacing:-1px;}
+  .stat-lbl{font-size:12px;color:var(--gray-500);margin-top:4px;font-weight:500;}
+  .warn-section{padding:16px 18px;background:linear-gradient(135deg, var(--warning-light) 0%, #FFF8ED 100%);}
+  .warn-title{font-size:12px;color:var(--warning);font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}
+  .warn-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,149,0,0.15);font-size:14px;font-weight:500;}
   .warn-item:last-child{border-bottom:none;}
-  .warn-need{font-size:13px;color:#FF9500;font-weight:500;}
-  .all-ok{padding:14px 16px;text-align:center;font-size:15px;color:#34C759;font-weight:500;}
+  .warn-need{font-size:13px;color:var(--warning);font-weight:600;background:rgba(255,149,0,0.15);padding:2px 8px;border-radius:6px;}
+  .all-ok{padding:20px 16px;text-align:center;font-size:16px;color:var(--success);font-weight:600;background:linear-gradient(135deg, var(--success-light) 0%, #E0F5E8 100%);}
 
-  .add-card{margin:12px 16px 0;background:#fff;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
-  .field-group{display:flex;flex-direction:column;gap:4px;}
-  .field-label{font-size:12px;color:#8E8E93;font-weight:500;}
-  .field-input{border:none;border-bottom:1px solid #E5E5EA;padding:6px 0;font-size:15px;background:transparent;color:#000;font-family:inherit;outline:none;width:100%;}
-  .field-input:focus{border-color:#007AFF;}
-  .field-row{display:flex;gap:10px;align-items:flex-end;}
+  /* ADD CARD - MANAGE PAGE */
+  .add-card{margin:16px 16px 0;background:linear-gradient(135deg, #fff 0%, #FAFBFC 100%);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--card-shadow);}
+  .field-group{display:flex;flex-direction:column;gap:6px;}
+  .field-label{font-size:12px;color:var(--gray-600);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
+  .field-input{border:2px solid var(--gray-200);border-radius:10px;padding:12px 14px;font-size:15px;background:#fff;color:var(--gray-900);font-family:inherit;outline:none;width:100%;transition:all 0.2s ease;}
+  .field-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light);}
+  .field-input::placeholder{color:var(--gray-400);}
+  .field-row{display:flex;gap:12px;align-items:flex-end;}
   .field-row .field-group{flex:1;}
-  .btn-add{background:#007AFF;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;height:36px;}
-  .btn-add:active{opacity:0.8;}
 
-  .m-row{display:flex;align-items:center;padding:10px 14px;border-bottom:0.5px solid #E5E5EA;gap:10px;}
+  /* IMAGE UPLOAD */
+  .img-upload-area{display:flex;gap:12px;align-items:center;}
+  .img-preview{width:72px;height:72px;border-radius:12px;object-fit:cover;background:linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);flex-shrink:0;display:none;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+  .img-preview.show{display:block;}
+  .img-upload-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px;border:2px dashed var(--gray-300);border-radius:12px;background:var(--gray-100);cursor:pointer;transition:all 0.2s ease;min-height:72px;}
+  .img-upload-btn:active{background:var(--primary-light);border-color:var(--primary);}
+  .img-upload-btn svg{width:28px;height:28px;stroke:var(--gray-500);stroke-width:1.5;fill:none;}
+  .img-upload-btn span{font-size:12px;color:var(--gray-500);font-weight:500;}
+  .img-upload-btn.has-img{border-style:solid;border-color:var(--success);background:var(--success-light);}
+  .img-upload-btn.has-img svg{stroke:var(--success);}
+  .img-upload-btn.has-img span{color:var(--success);}
+
+  .btn-add{background:linear-gradient(135deg, #3B8DF8 0%, var(--primary) 100%);color:#fff;border:none;border-radius:12px;padding:14px 24px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 4px 12px rgba(0,122,255,0.25);transition:all 0.2s ease;display:flex;align-items:center;gap:6px;}
+  .btn-add:active{transform:scale(0.96);}
+  .btn-add svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;}
+
+  /* MANAGE LIST */
+  .m-row{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--gray-100);gap:12px;animation:fadeIn 0.3s ease backwards;}
   .m-row:last-child{border-bottom:none;}
-  .m-img{width:36px;height:36px;border-radius:7px;object-fit:cover;background:#F2F2F7;flex-shrink:0;}
-  .m-img-placeholder{width:36px;height:36px;border-radius:7px;background:#F2F2F7;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;color:#C7C7CC;}
-  .m-code{font-size:12px;color:#8E8E93;width:24px;flex-shrink:0;}
-  .m-name{flex:1;font-size:14px;color:#000;}
-  .m-min{font-size:12px;color:#8E8E93;margin-right:8px;}
-  .btn-del{background:none;border:none;color:#FF3B30;font-size:22px;cursor:pointer;padding:0 2px;line-height:1;}
-  .btn-del:active{opacity:0.6;}
+  .m-img{width:44px;height:44px;border-radius:10px;object-fit:cover;background:linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,0.06);}
+  .m-img-placeholder{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gray-400);}
+  .m-img-placeholder svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.5;fill:none;}
+  .m-code{font-size:11px;color:#fff;background:var(--gray-500);padding:2px 6px;border-radius:4px;font-weight:600;flex-shrink:0;}
+  .m-name{flex:1;font-size:15px;font-weight:500;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .m-min{font-size:12px;color:#fff;background:var(--primary);padding:3px 8px;border-radius:6px;font-weight:600;margin-right:4px;}
+  .btn-del{background:var(--danger-light);border:none;color:var(--danger);width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s ease;}
+  .btn-del:active{transform:scale(0.9);background:var(--danger);color:#fff;}
+  .btn-del svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;}
 
-  .h-card{margin:0 16px 8px;background:#fff;border-radius:12px;overflow:hidden;}
-  .h-head{padding:11px 14px;border-bottom:0.5px solid #E5E5EA;display:flex;justify-content:space-between;align-items:center;}
-  .h-date{font-size:15px;font-weight:500;color:#000;}
-  .h-checker{font-size:13px;color:#8E8E93;}
-  .h-stats{display:flex;padding:12px 14px;gap:20px;}
-  .h-stat{display:flex;flex-direction:column;gap:2px;}
-  .h-num{font-size:20px;font-weight:600;letter-spacing:-0.3px;}
-  .h-lbl{font-size:11px;color:#8E8E93;}
-  .h-detail{padding:8px 14px;background:#F9F9F9;font-size:13px;color:#8E8E93;border-top:0.5px solid #E5E5EA;}
-  .empty-state{text-align:center;padding:48px 24px;color:#8E8E93;}
-  .empty-text{font-size:15px;}
-  .loading{text-align:center;padding:60px 24px;color:#8E8E93;font-size:15px;}
+  /* HISTORY */
+  .h-card{margin:0 16px 12px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:var(--card-shadow);animation:fadeIn 0.3s ease backwards;}
+  .h-head{padding:14px 16px;border-bottom:1px solid var(--gray-100);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg, #FAFBFC 0%, #fff 100%);}
+  .h-date{font-size:16px;font-weight:600;color:var(--gray-900);}
+  .h-checker{font-size:13px;color:var(--gray-500);background:var(--gray-100);padding:4px 10px;border-radius:6px;font-weight:500;}
+  .h-stats{display:flex;padding:14px 16px;justify-content:space-around;}
+  .h-stat{display:flex;flex-direction:column;gap:2px;align-items:center;flex:1;text-align:center;}
+  .h-num{font-size:24px;font-weight:700;letter-spacing:-0.5px;}
+  .h-lbl{font-size:11px;color:var(--gray-500);font-weight:500;}
+  .h-detail{padding:12px 16px;background:var(--gray-100);font-size:13px;color:var(--gray-600);border-top:1px solid var(--gray-100);font-weight:500;line-height:1.5;word-break:break-word;}
+  .h-detail.warn{background:var(--warning-light);color:var(--warning);}
+  .h-detail.ok{background:var(--success-light);color:var(--success);}
+  .h-detail:empty{display:none;}
+
+  .empty-state{text-align:center;padding:60px 24px;color:var(--gray-500);animation:fadeIn 0.4s ease;}
+  .empty-icon{margin-bottom:12px;color:var(--gray-400);}
+  .empty-icon svg{width:48px;height:48px;stroke:currentColor;stroke-width:1.5;fill:none;}
+  .empty-text{font-size:15px;font-weight:500;}
+  .empty-sub{font-size:13px;color:var(--gray-400);margin-top:4px;}
+  .loading{text-align:center;padding:60px 24px;color:var(--gray-500);font-size:15px;}
+  .loading-spinner{width:32px;height:32px;border:3px solid var(--gray-200);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px;}
+
+  /* Toast */
+  .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gray-800);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:500;opacity:0;transition:all 0.3s ease;z-index:1000;box-shadow:0 4px 16px rgba(0,0,0,0.2);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* Modal */
+  .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:200;animation:fadeIn 0.2s ease;}
+  .modal-overlay.show{display:flex;}
+  .modal-content{background:#fff;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:500px;animation:slideUp 0.3s ease;max-height:90vh;overflow-y:auto;}
+  .modal-title{font-size:18px;font-weight:700;color:var(--gray-900);text-align:center;margin-bottom:20px;}
+  .modal-btns{display:flex;flex-direction:column;gap:10px;}
+  .modal-btn{display:flex;align-items:center;gap:14px;padding:16px;border:none;background:var(--gray-100);border-radius:14px;font-size:16px;font-weight:500;color:var(--gray-900);cursor:pointer;transition:all 0.15s ease;font-family:inherit;}
+  .modal-btn:active{background:var(--gray-200);}
+  .modal-btn svg{width:24px;height:24px;stroke:var(--primary);stroke-width:2;fill:none;}
+  .modal-btn-cancel{background:none;color:var(--danger);justify-content:center;margin-top:8px;}
+  .modal-btn-danger{background:var(--danger-light);}
+  .modal-btn-danger svg{stroke:var(--danger);}
+
+  /* Clear Button */
+  .btn-clear{display:block;width:calc(100% - 32px);margin:0 16px 12px;background:#fff;color:var(--gray-600);border:2px solid var(--gray-200);border-radius:14px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s ease;}
+  .btn-clear:active{background:var(--gray-100);border-color:var(--gray-300);}
+  .btn-clear svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;vertical-align:middle;margin-right:6px;}
+
+  /* History Actions */
+  .h-actions{display:flex;gap:8px;padding:10px 16px;border-top:1px solid var(--gray-100);background:var(--gray-100);}
+  .h-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s ease;}
+  .h-btn:active{transform:scale(0.96);}
+  .h-btn-edit{background:#fff;color:var(--primary);}
+  .h-btn-delete{background:var(--danger-light);color:var(--danger);}
+  .h-btn svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;}
+
+  /* Edit Modal Form */
+  .modal-form{display:flex;flex-direction:column;gap:16px;margin-bottom:20px;}
+  .modal-field{display:flex;flex-direction:column;gap:6px;}
+  .modal-field label{font-size:12px;color:var(--gray-600);font-weight:600;text-transform:uppercase;}
+  .modal-field input{border:2px solid var(--gray-200);border-radius:10px;padding:12px 14px;font-size:15px;background:#fff;color:var(--gray-900);font-family:inherit;outline:none;width:100%;}
+  .modal-field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light);}
+  .modal-field-row{display:flex;gap:12px;}
+  .modal-field-row .modal-field{flex:1;}
 </style>
 </head>
 <body>
@@ -123,19 +229,23 @@
       <div class="nav-sub" id="today-date"></div>
     </div>
     <div id="profile-area"></div>
-    <div class="sec-hdr">รายการ</div>
+    <div class="sec-hdr">รายการอุปกรณ์</div>
     <div class="list-card" id="check-list"></div>
     <div class="summary-card" id="summary-card">
       <div class="summary-grid">
-        <div class="summary-stat"><div class="stat-num" id="s-ok" style="color:#34C759">0</div><div class="stat-lbl">ครบแล้ว</div></div>
-        <div class="summary-stat"><div class="stat-num" id="s-warn" style="color:#FF9500">0</div><div class="stat-lbl">ต้องเพิ่ม</div></div>
+        <div class="summary-stat"><div class="stat-num" id="s-ok" style="color:var(--success)">0</div><div class="stat-lbl">ครบแล้ว</div></div>
+        <div class="summary-stat"><div class="stat-num" id="s-warn" style="color:var(--warning)">0</div><div class="stat-lbl">ต้องเพิ่ม</div></div>
         <div class="summary-stat"><div class="stat-num" id="s-total">0</div><div class="stat-lbl">ทั้งหมด</div></div>
-        <div class="summary-stat"><div class="stat-num" id="s-empty" style="color:#8E8E93">0</div><div class="stat-lbl">ยังไม่กรอก</div></div>
+        <div class="summary-stat"><div class="stat-num" id="s-empty" style="color:var(--gray-500)">0</div><div class="stat-lbl">ยังไม่กรอก</div></div>
       </div>
       <div id="warn-body"></div>
     </div>
+    <button class="btn-clear" id="btn-clear" onclick="clearAllValues()">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+      ล้างค่าทั้งหมด
+    </button>
     <button class="btn-primary" id="btn-summarize" onclick="summarize()">สรุปผล</button>
-    <button class="btn-primary" id="btn-save" style="display:none;background:#34C759;" onclick="saveToSheet()">บันทึกผล</button>
+    <button class="btn-primary success" id="btn-save" style="display:none;" onclick="saveToSheet()">บันทึกผล</button>
   </div>
 
   <!-- PAGE: MANAGE -->
@@ -146,12 +256,27 @@
         <div class="field-label">ชื่ออุปกรณ์</div>
         <input class="field-input" id="new-name" placeholder="เช่น Set Jugular Vein" type="text">
       </div>
+      <div class="field-group">
+        <div class="field-label">รูปภาพ</div>
+        <div class="img-upload-area">
+          <img class="img-preview" id="img-preview" src="" alt="">
+          <div class="img-upload-btn" id="img-upload-btn" onclick="openImageModal()">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span id="img-upload-text">แตะเพื่อเพิ่มรูป</span>
+          </div>
+        </div>
+        <input type="file" id="img-file-input" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+        <input type="file" id="img-camera-input" accept="image/*" capture="environment" style="display:none;" onchange="handleImageSelect(event)">
+      </div>
       <div class="field-row">
         <div class="field-group">
           <div class="field-label">จำนวนขั้นต่ำ</div>
-          <input class="field-input" id="new-min" placeholder="เช่น 5" type="number" min="1" inputmode="numeric" style="width:120px;">
+          <input class="field-input" id="new-min" placeholder="เช่น 5" type="number" min="1" inputmode="numeric">
         </div>
-        <button class="btn-add" onclick="addItem()">+ เพิ่ม</button>
+        <button class="btn-add" onclick="addItem()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          เพิ่มรายการ
+        </button>
       </div>
     </div>
     <div class="sec-hdr" id="manage-count"></div>
@@ -162,7 +287,7 @@
   <div class="page" id="page-history">
     <div class="nav"><div class="nav-title">ประวัติย้อนหลัง</div></div>
     <div class="sec-hdr">รายการล่าสุด</div>
-    <div id="history-list"><div class="loading">กำลังโหลด...</div></div>
+    <div id="history-list"><div class="loading"><div class="loading-spinner"></div>กำลังโหลด...</div></div>
   </div>
 
   <!-- TAB BAR -->
@@ -182,37 +307,269 @@
   </div>
 </div>
 
-<div id="loading-screen" class="loading" style="padding-top:80px;">กำลังโหลด...</div>
+<!-- Image Upload Modal -->
+<div class="modal-overlay" id="image-modal">
+  <div class="modal-content">
+    <div class="modal-title">เลือกรูปภาพ</div>
+    <div class="modal-btns">
+      <button class="modal-btn" onclick="triggerCamera()">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        ถ่ายรูป
+      </button>
+      <button class="modal-btn" onclick="triggerFilePicker()">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        เลือกจากคลังรูป
+      </button>
+      <button class="modal-btn modal-btn-cancel" onclick="closeImageModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Edit History Modal -->
+<div class="modal-overlay" id="edit-history-modal">
+  <div class="modal-content">
+    <div class="modal-title">แก้ไขประวัติ</div>
+    <div class="modal-form">
+      <div class="modal-field">
+        <label>วันที่</label>
+        <input type="text" id="edit-date" placeholder="เช่น 11 มิ.ย. 2567">
+      </div>
+      <div class="modal-field">
+        <label>ผู้เช็ค</label>
+        <input type="text" id="edit-checker" placeholder="ชื่อผู้เช็ค">
+      </div>
+      <div class="modal-field-row">
+        <div class="modal-field">
+          <label>ครบ</label>
+          <input type="number" id="edit-ok" min="0" inputmode="numeric">
+        </div>
+        <div class="modal-field">
+          <label>ขาด</label>
+          <input type="number" id="edit-warn" min="0" inputmode="numeric">
+        </div>
+      </div>
+      <div class="modal-field">
+        <label>รายการที่ขาด</label>
+        <input type="text" id="edit-warnItems" placeholder="เช่น สาย IV (ขาด 2), ถุงมือ (ขาด 5)">
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn" onclick="saveEditHistory()">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        บันทึกการแก้ไข
+      </button>
+      <button class="modal-btn modal-btn-cancel" onclick="closeEditHistoryModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- History Action Modal -->
+<div class="modal-overlay" id="history-action-modal">
+  <div class="modal-content">
+    <div class="modal-title">จัดการประวัติ</div>
+    <div class="modal-btns">
+      <button class="modal-btn" onclick="openEditFromAction()">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        แก้ไขข้อมูล
+      </button>
+      <button class="modal-btn modal-btn-danger" onclick="deleteHistoryFromAction()">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        ลบประวัตินี้
+      </button>
+      <button class="modal-btn modal-btn-cancel" onclick="closeHistoryActionModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<div id="loading-screen" class="loading" style="padding-top:80px;"><div class="loading-spinner"></div>กำลังโหลด...</div>
 
 <script>
 const LIFF_ID = "2010342127-azYMv5FW";
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbyQ2OjGaVT3B1pUl6JxunYpRc2EpAlYAt0U2rJdc4qDsVjUXgFES4qKUklREBjRdTOp/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbx0e5JJTOR685vFqWiRqxIU215HqpzOnmDUHIcqVMTz5voz2P1c8MlcvAla1-JhVSnl/exec";
 
 let profile = null;
 let vals = [];
 let items = JSON.parse(localStorage.getItem('stock-items')) || [];
+let currentImageData = null;
+let historyData = [];
+let selectedHistoryIndex = -1;
 
 function saveItems(){ localStorage.setItem('stock-items', JSON.stringify(items)); }
 
-function imgEl(code, cls) {
-  const src = `images/${code}.jpg`;
-  return `<img class="${cls}" src="${src}" alt="" onerror="this.outerHTML='<div class=\\"${cls}-placeholder\\">ไม่มีรูป</div>'">`;
+function showToast(message, duration = 2000) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+// Format date เป็นภาษาไทย
+function formatDate(dateInput) {
+  if (!dateInput || dateInput === '-') return '-';
+
+  let date;
+
+  // ถ้าเป็น string ที่มีรูปแบบวันที่ไทยแล้ว (เช่น "11 มิ.ย. 2567") ให้ return เลย
+  if (typeof dateInput === 'string' && /\d{1,2}\s+[ก-ฮ]+\.?[ก-ฮ]*\.?\s+\d{4}/.test(dateInput)) {
+    return dateInput;
+  }
+
+  // ถ้าเป็น ISO string
+  if (typeof dateInput === 'string' && dateInput.includes('T')) {
+    date = new Date(dateInput);
+  }
+  // ถ้าเป็น Date object
+  else if (dateInput instanceof Date) {
+    date = dateInput;
+  }
+  // ถ้าเป็นตัวเลข (serial number จาก Google Sheets)
+  else if (typeof dateInput === 'number') {
+    // Google Sheets serial: วันที่ 1 = 1899-12-30
+    date = new Date((dateInput - 25569) * 86400 * 1000);
+  }
+  // ถ้าเป็น string ตัวเลข
+  else if (typeof dateInput === 'string' && !isNaN(dateInput)) {
+    const num = parseFloat(dateInput);
+    if (num > 40000 && num < 50000) { // น่าจะเป็น serial number
+      date = new Date((num - 25569) * 86400 * 1000);
+    } else {
+      return dateInput;
+    }
+  }
+  // string อื่นๆ
+  else if (typeof dateInput === 'string') {
+    return dateInput;
+  }
+  else {
+    return String(dateInput);
+  }
+
+  // ตรวจสอบว่า date valid ไหม
+  if (!date || isNaN(date.getTime())) {
+    return String(dateInput);
+  }
+
+  return date.toLocaleDateString('th-TH', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+}
+
+function imgEl(item, cls) {
+  if (item.image) {
+    return `<img class="${cls}" src="${item.image}" alt="${item.name}">`;
+  }
+  const src = `images/${item.code}.jpg`;
+  const defaultIcon = `<div class="${cls}-placeholder"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>`;
+  return `<img class="${cls}" src="${src}" alt="" onerror="this.outerHTML='${defaultIcon.replace(/'/g, "\\'")}'">`;
+}
+
+
+// Image Upload Functions
+function openImageModal() {
+  document.getElementById('image-modal').classList.add('show');
+}
+
+function closeImageModal() {
+  document.getElementById('image-modal').classList.remove('show');
+}
+
+function triggerCamera() {
+  closeImageModal();
+  document.getElementById('img-camera-input').click();
+}
+
+function triggerFilePicker() {
+  closeImageModal();
+  document.getElementById('img-file-input').click();
+}
+
+function handleImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Check file size (max 2MB)
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('รูปใหญ่เกินไป (สูงสุด 2MB)');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // Compress image
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxSize = 400;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxSize) {
+          height *= maxSize / width;
+          width = maxSize;
+        }
+      } else {
+        if (height > maxSize) {
+          width *= maxSize / height;
+          height = maxSize;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      currentImageData = canvas.toDataURL('image/jpeg', 0.7);
+
+      // Update UI
+      const preview = document.getElementById('img-preview');
+      preview.src = currentImageData;
+      preview.classList.add('show');
+
+      const btn = document.getElementById('img-upload-btn');
+      btn.classList.add('has-img');
+      document.getElementById('img-upload-text').textContent = 'เปลี่ยนรูป';
+
+      showToast('เพิ่มรูปแล้ว');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  // Reset input
+  event.target.value = '';
+}
+
+function clearImagePreview() {
+  currentImageData = null;
+  const preview = document.getElementById('img-preview');
+  preview.src = '';
+  preview.classList.remove('show');
+  const btn = document.getElementById('img-upload-btn');
+  btn.classList.remove('has-img');
+  document.getElementById('img-upload-text').textContent = 'แตะเพื่อเพิ่มรูป';
 }
 
 async function init() {
   return new Promise(async (resolve) => {
-  vals = items.map(() => 0);
-  document.getElementById('today-date').textContent = new Date().toLocaleDateString('th-TH', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
-  try {
-    await liff.init({ liffId: LIFF_ID });
-    if (liff.isLoggedIn()) profile = await liff.getProfile();
-  } catch(e) { console.log('browser mode'); }
-  renderProfile();
-  renderCheck();
-  renderManage();
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  resolve();
+    vals = items.map(() => 0);
+    document.getElementById('today-date').textContent = new Date().toLocaleDateString('th-TH', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (liff.isLoggedIn()) profile = await liff.getProfile();
+    } catch(e) { console.log('browser mode'); }
+    renderProfile();
+    renderCheck();
+    renderManage();
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    resolve();
   });
 }
 
@@ -220,7 +577,7 @@ function renderProfile() {
   const dateStr = new Date().toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'numeric'});
   document.getElementById('profile-area').innerHTML = profile
     ? `<div class="profile-row"><img class="profile-avatar" src="${profile.pictureUrl}" alt=""><div class="profile-info"><div class="profile-name">${profile.displayName}</div><div class="profile-date">${dateStr}</div></div></div>`
-    : `<div class="profile-row"><div class="profile-avatar-placeholder">?</div><div class="profile-info"><div class="profile-name" style="color:#8E8E93">เปิดผ่าน LINE เพื่อดึงชื่อ</div><div class="profile-date">${dateStr}</div></div></div>`;
+    : `<div class="profile-row"><div class="profile-avatar-placeholder"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="profile-info"><div class="profile-name" style="color:var(--gray-500)">เปิดผ่าน LINE เพื่อดึงชื่อ</div><div class="profile-date">${dateStr}</div></div></div>`;
 }
 
 function getValClass(i) {
@@ -233,17 +590,18 @@ function renderCheck() {
   const list = document.getElementById('check-list');
   list.innerHTML = '';
   if (items.length === 0) {
-    list.innerHTML = `<div style="padding:24px 16px;text-align:center;color:#8E8E93;font-size:14px;">ยังไม่มีรายการ<br><span style="font-size:12px;">เพิ่มได้ที่แท็บ "จัดการรายการ"</span></div>`;
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><div class="empty-text">ยังไม่มีรายการ</div><div class="empty-sub">เพิ่มได้ที่แท็บ "จัดการรายการ"</div></div>`;
     return;
   }
   items.forEach((item, i) => {
     const row = document.createElement('div');
     row.className = 'list-row';
+    row.style.animationDelay = `${i * 0.03}s`;
     row.innerHTML = `
-      ${imgEl(item.code, 'row-img')}
+      ${imgEl(item, 'row-img')}
       <div class="row-info">
         <div class="row-name">${item.name}</div>
-        <div class="row-min">ขั้นต่ำ ${item.min}</div>
+        <div class="row-min">ขั้นต่ำ ${item.min} ชิ้น</div>
       </div>
       <div class="stepper">
         <button class="step-btn step-minus" onclick="change(${i},-1)">−</button>
@@ -278,6 +636,17 @@ function setVal(i, v) {
   updateRow(i);
 }
 
+function clearAllValues() {
+  if (vals.every(v => v === 0)) {
+    showToast('ค่าถูกล้างหมดแล้ว');
+    return;
+  }
+  if (!confirm('ล้างค่าทั้งหมดที่กรอกไว้?')) return;
+  vals = items.map(() => 0);
+  renderCheck();
+  showToast('ล้างค่าทั้งหมดแล้ว');
+}
+
 function summarize() {
   let ok=0, warn=0, empty=0, warnItems=[];
   items.forEach((item, i) => {
@@ -293,7 +662,7 @@ function summarize() {
   document.getElementById('s-empty').textContent = empty;
   const wb = document.getElementById('warn-body');
   if (warnItems.length > 0) {
-    wb.innerHTML = `<div class="warn-section"><div class="warn-title">ต้องเพิ่ม</div>${warnItems.map(w=>`<div class="warn-item"><span>${w.name}</span><span class="warn-need">ขาด ${w.need}</span></div>`).join('')}</div>`;
+    wb.innerHTML = `<div class="warn-section"><div class="warn-title">รายการที่ต้องเพิ่ม</div>${warnItems.map(w=>`<div class="warn-item"><span>${w.name}</span><span class="warn-need">ขาด ${w.need}</span></div>`).join('')}</div>`;
   } else if (empty === 0) {
     wb.innerHTML = `<div class="all-ok">✓ สต็อคครบทุกรายการ</div>`;
   } else { wb.innerHTML = ''; }
@@ -306,86 +675,247 @@ function summarize() {
 async function saveToSheet() {
   const btn = document.getElementById('btn-save');
   btn.disabled = true;
-  btn.textContent = 'กำลังบันทึก...';
+  btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;"></span>กำลังบันทึก...';
   const warnLines = items.filter((item,i) => vals[i] > 0 && vals[i] < item.min)
     .map((item,i) => `${item.name} (ขาด ${item.min - vals[items.indexOf(item)]})`);
   const data = {
     date: new Date().toLocaleDateString('th-TH'),
     checker: profile ? profile.displayName : 'ไม่ระบุ',
+    userId: profile ? profile.userId : '-',
+    picture: profile ? profile.pictureUrl : '-',
     ok: parseInt(document.getElementById('s-ok').textContent),
     warn: parseInt(document.getElementById('s-warn').textContent),
     warnItems: warnLines.join(', ') || '-'
   };
   try {
     await fetch(SHEET_URL, { method:'POST', body:JSON.stringify(data) });
-    btn.textContent = 'บันทึกแล้ว ✓';
-    btn.style.background = '#8E8E93';
+    btn.innerHTML = '✓ บันทึกแล้ว';
+    btn.style.background = 'var(--gray-400)';
+    showToast('บันทึกสำเร็จ');
     loadHistory();
   } catch(e) {
     btn.textContent = 'บันทึกไม่สำเร็จ ลองอีกครั้ง';
     btn.disabled = false;
+    showToast('เกิดข้อผิดพลาด');
   }
 }
 
 function renderManage() {
-  document.getElementById('manage-count').textContent = `${items.length} รายการ`;
+  const count = items.length;
+  document.getElementById('manage-count').textContent = count > 0 ? `รายการทั้งหมด (${count})` : 'ยังไม่มีรายการ';
   const list = document.getElementById('manage-list');
   list.innerHTML = '';
+
+  if (items.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><div class="empty-text">ยังไม่มีรายการ</div><div class="empty-sub">เพิ่มรายการใหม่ด้านบน</div></div>`;
+    return;
+  }
+
   items.forEach((item, i) => {
     const row = document.createElement('div');
     row.className = 'm-row';
+    row.style.animationDelay = `${i * 0.03}s`;
     row.innerHTML = `
-      ${imgEl(item.code, 'm-img')}
+      ${imgEl(item, 'm-img')}
       <span class="m-code">${item.code}</span>
       <span class="m-name">${item.name}</span>
       <span class="m-min">min ${item.min}</span>
-      <button class="btn-del" onclick="delItem(${i})" aria-label="ลบ">−</button>`;
+      <button class="btn-del" onclick="delItem(${i})" aria-label="ลบ">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`;
     list.appendChild(row);
   });
 }
 
 function addItem() {
-  const name = document.getElementById('new-name').value.trim();
-  const min = parseInt(document.getElementById('new-min').value);
-  if (!name || !min || min < 1) return;
-  items.push({code: String(items.length+1).padStart(3,'0'), name, min});
+  const nameInput = document.getElementById('new-name');
+  const minInput = document.getElementById('new-min');
+  const name = nameInput.value.trim();
+  const min = parseInt(minInput.value);
+
+  if (!name) {
+    nameInput.style.borderColor = 'var(--danger)';
+    nameInput.style.animation = 'shake 0.3s ease';
+    setTimeout(() => {
+      nameInput.style.borderColor = '';
+      nameInput.style.animation = '';
+    }, 300);
+    showToast('กรุณากรอกชื่ออุปกรณ์');
+    return;
+  }
+
+  if (!min || min < 1) {
+    minInput.style.borderColor = 'var(--danger)';
+    minInput.style.animation = 'shake 0.3s ease';
+    setTimeout(() => {
+      minInput.style.borderColor = '';
+      minInput.style.animation = '';
+    }, 300);
+    showToast('กรุณากรอกจำนวนขั้นต่ำ');
+    return;
+  }
+
+  const newItem = {
+    code: String(items.length+1).padStart(3,'0'),
+    name,
+    min
+  };
+
+  if (currentImageData) {
+    newItem.image = currentImageData;
+  }
+
+  items.push(newItem);
   saveItems();
-  document.getElementById('new-name').value = '';
-  document.getElementById('new-min').value = '';
+
+  nameInput.value = '';
+  minInput.value = '';
+  clearImagePreview();
+
   renderManage();
   renderCheck();
+  showToast(`เพิ่ม "${name}" แล้ว`);
 }
 
 function delItem(i) {
-  if (!confirm(`ลบ "${items[i].name}" ออกจากรายการ?`)) return;
+  const itemName = items[i].name;
+  if (!confirm(`ลบ "${itemName}" ออกจากรายการ?`)) return;
   items.splice(i, 1);
   items.forEach((item,idx) => item.code = String(idx+1).padStart(3,'0'));
   saveItems();
   renderManage();
   renderCheck();
+  showToast(`ลบ "${itemName}" แล้ว`);
 }
 
 async function loadHistory() {
   const container = document.getElementById('history-list');
+  container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>กำลังโหลด...</div>';
   try {
     const res = await fetch(SHEET_URL + '?action=get');
     const rows = await res.json();
-    if (!rows.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-text">ยังไม่มีประวัติการเช็ค</div></div>`;
+    historyData = rows.reverse();
+    if (!historyData.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="empty-text">ยังไม่มีประวัติการเช็ค</div><div class="empty-sub">ผลการเช็คจะแสดงที่นี่</div></div>`;
       return;
     }
-    container.innerHTML = rows.reverse().map(r => `
-      <div class="h-card">
-        <div class="h-head"><span class="h-date">${r.date}</span><span class="h-checker">${r.checker}</span></div>
-        <div class="h-stats">
-          <div class="h-stat"><div class="h-num" style="color:#34C759">${r.ok}</div><div class="h-lbl">ครบ</div></div>
-          <div class="h-stat"><div class="h-num" style="color:#FF9500">${r.warn}</div><div class="h-lbl">ขาด</div></div>
-          <div class="h-stat"><div class="h-num">${parseInt(r.ok)+parseInt(r.warn)}</div><div class="h-lbl">ทั้งหมด</div></div>
+    container.innerHTML = historyData.map((r, i) => {
+      const okNum = parseInt(r.ok) || 0;
+      const warnNum = parseInt(r.warn) || 0;
+      const totalNum = okNum + warnNum;
+      const hasWarn = warnNum > 0;
+      const warnText = (!r.warnItems || r.warnItems === '-') ? '' : r.warnItems;
+
+      return `
+      <div class="h-card" style="animation-delay:${i * 0.05}s">
+        <div class="h-head">
+          <span class="h-date">${formatDate(r.date)}</span>
+          <span class="h-checker">${r.checker || 'ไม่ระบุ'}</span>
         </div>
-        <div class="h-detail" style="color:${parseInt(r.warn)>0?'#8E8E93':'#34C759'}">${r.warnItems==='-'?'ครบทุกรายการ':'ขาด: '+r.warnItems}</div>
-      </div>`).join('');
+        <div class="h-stats">
+          <div class="h-stat"><div class="h-num" style="color:var(--success)">${okNum}</div><div class="h-lbl">ครบ</div></div>
+          <div class="h-stat"><div class="h-num" style="color:var(--warning)">${warnNum}</div><div class="h-lbl">ขาด</div></div>
+          <div class="h-stat"><div class="h-num">${totalNum}</div><div class="h-lbl">ทั้งหมด</div></div>
+        </div>
+        ${hasWarn && warnText ? `<div class="h-detail warn">ขาด: ${warnText}</div>` : (totalNum > 0 ? `<div class="h-detail ok">✓ ครบทุกรายการ</div>` : '')}
+        <div class="h-actions">
+          <button class="h-btn h-btn-edit" onclick="openHistoryActionModal(${i})">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            แก้ไข
+          </button>
+          <button class="h-btn h-btn-delete" onclick="confirmDeleteHistory(${i})">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            ลบ
+          </button>
+        </div>
+      </div>`;
+    }).join('');
   } catch(e) {
-    container.innerHTML = `<div class="empty-state"><div class="empty-text">โหลดไม่สำเร็จ</div></div>`;
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="empty-text">โหลดไม่สำเร็จ</div><div class="empty-sub">กรุณาลองใหม่อีกครั้ง</div></div>`;
+  }
+}
+
+// History Action Modal
+function openHistoryActionModal(index) {
+  selectedHistoryIndex = index;
+  document.getElementById('history-action-modal').classList.add('show');
+}
+
+function closeHistoryActionModal() {
+  document.getElementById('history-action-modal').classList.remove('show');
+}
+
+function openEditFromAction() {
+  closeHistoryActionModal();
+  openEditHistoryModal(selectedHistoryIndex);
+}
+
+function deleteHistoryFromAction() {
+  closeHistoryActionModal();
+  confirmDeleteHistory(selectedHistoryIndex);
+}
+
+// Edit History Modal
+function openEditHistoryModal(index) {
+  selectedHistoryIndex = index;
+  const record = historyData[index];
+  document.getElementById('edit-date').value = formatDate(record.date);
+  document.getElementById('edit-checker').value = record.checker;
+  document.getElementById('edit-ok').value = record.ok;
+  document.getElementById('edit-warn').value = record.warn;
+  document.getElementById('edit-warnItems').value = record.warnItems === '-' ? '' : record.warnItems;
+  document.getElementById('edit-history-modal').classList.add('show');
+}
+
+function closeEditHistoryModal() {
+  document.getElementById('edit-history-modal').classList.remove('show');
+}
+
+async function saveEditHistory() {
+  const record = historyData[selectedHistoryIndex];
+  const updatedData = {
+    action: 'update',
+    row: record.id - 1, // id คือ row number ใน Sheet, -1 เพราะ script จะ +1 กลับ
+    date: document.getElementById('edit-date').value,
+    checker: document.getElementById('edit-checker').value,
+    ok: parseInt(document.getElementById('edit-ok').value) || 0,
+    warn: parseInt(document.getElementById('edit-warn').value) || 0,
+    warnItems: document.getElementById('edit-warnItems').value || '-'
+  };
+
+  closeEditHistoryModal();
+  showToast('กำลังบันทึก...');
+
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      body: JSON.stringify(updatedData)
+    });
+    showToast('แก้ไขสำเร็จ');
+    loadHistory();
+  } catch(e) {
+    showToast('แก้ไขไม่สำเร็จ');
+  }
+}
+
+async function confirmDeleteHistory(index) {
+  const record = historyData[index];
+  if (!confirm(`ลบประวัติวันที่ ${formatDate(record.date)}?`)) return;
+
+  showToast('กำลังลบ...');
+
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'delete',
+        row: record.id - 1 // id คือ row number ใน Sheet, -1 เพราะ script จะ +1 กลับ
+      })
+    });
+    showToast('ลบสำเร็จ');
+    loadHistory();
+  } catch(e) {
+    showToast('ลบไม่สำเร็จ');
   }
 }
 
@@ -402,6 +932,19 @@ function handleHash() {
   if (hash === 'manage' || hash === 'history') switchPage(hash);
   else switchPage('check');
 }
+
+// Close modal when clicking outside
+document.getElementById('image-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeImageModal();
+});
+
+document.getElementById('edit-history-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditHistoryModal();
+});
+
+document.getElementById('history-action-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeHistoryActionModal();
+});
 
 window.addEventListener('hashchange', handleHash);
 
