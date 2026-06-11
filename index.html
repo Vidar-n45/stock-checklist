@@ -568,7 +568,13 @@ async function init() {
     document.getElementById('today-date').textContent = new Date().toLocaleDateString('th-TH', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
     try {
       await liff.init({ liffId: LIFF_ID });
-      if (liff.isLoggedIn()) profile = await liff.getProfile();
+      if (!liff.isLoggedIn()) {
+        // ถ้ายังไม่ login ให้ redirect ไป login
+        liff.login();
+        return;
+      }
+      profile = await liff.getProfile();
+      console.log('LINE Profile:', profile);
     } catch(e) { console.log('browser mode'); }
     renderProfile();
     renderCheck();
